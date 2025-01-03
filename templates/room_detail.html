@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f9f9f9;
+        margin: 0;
+        padding: 20px;
+    }
+    h1 {
+        text-align: center;
+        color: #333;
+    }
+
+    .message-input-container {
+        max-width: 600px;
+        margin: 20px auto;
+        display: flex;
+        gap: 10px;
+    }
+    .message-input {
+        flex-grow: 1;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+    .send-button {
+        padding: 10px 20px;
+        background-color: #007bff;
+        border: none;
+        color: white;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    .send-button:hover {
+        background-color: #0056b3;
+    }
+    .message-sent {
+    text-align: right;
+    margin: 1px 0;
+    /* background-color: #d1e7dd; */
+    padding: 10px;
+    border-radius: 10px;
+    display: inline-block;
+    /* max-width: 40%; */
+  
+}
+.message-sent .content{
+    background-color: #d1e7dd;
+    padding: 10px;
+    border-radius: 10px;
+}
+.message-received .content{
+    background-color: #f8d7da;
+    padding: 10px;
+    border-radius: 10px;
+}
+
+
+.message-received {
+    text-align: left;
+    margin: 1px 0;
+    /* background-color: #f8d7da; */
+    padding: 10px;
+    border-radius: 10px;
+    display: inline-block;
+    /* max-width: 70%; */
+}
+.message-list{
+    display: flex;
+    flex-direction: column;
+    margin: auto;
+    width: 80%;
+}
+
+</style>
+
+</head>
+<body>
+    <h1>Chat Room: <span id="room-name">{{ room.name }}</span></h1>
+    <ul id="message-list" class="message-list">
+        {% for message in messages %}
+            <li class="{% if message.user.username == request.user.username %}message-sent{% else %}message-received{% endif %}">
+<div class="content">                <b><p class="message-content">{{ message.content }}</p></b>
+    <p class="message-user">{{ message.user.username }}</p></div>
+            </li>
+        {% endfor %}
+    </ul>
+    <div class="message-input-container">
+        <input id="message-input" type="text" class="message-input" placeholder="Type a message">
+        <button class="send-button" onclick="sendMessage()">Send</button>
+    </div>
+</body>
+
+    <script>
+        let socket;
+        const roomName = "{{room.name}}"
+        const wsUrl = `ws://${window.location.host}/ws/chat/${roomName}/`
+
+        let chatSocket = new WebSocket(wsUrl)
+
+        chatSocket.onopen = function(e){
+            console.log('websocket connection occured')
+        }
+
+        chatSocket.onmessage = function(e) {
+    const data = JSON.parse(e.data);
+    const message = data.message;
+    const username = data.username;
+
+    const messageList = document.getElementById('message-list');
+    const newMessage = document.createElement('li');
+
+    if (username === "{{ request.user.username }}") {
+        newMessage.className = 'message-sent';
+    } else {
+        newMessage.className = 'message-received';
+    }
+
+    newMessage.innerHTML = `
+        <h3 class="message-content">${message}</h3>
+        <p class="message-user">${username}</p>
+    `;
+
+    messageList.appendChild(newMessage);
+};
+
+        // chatSocket.onmessage = function(e){
+        //     const data = JSON.parse(e.data)
+        //     console.log(e.data)
+        //     const message = data['message']
+
+        //     const messageList = document.getElementById('message-list')
+        //     const newMessage = document.createElement('li')
+        //     newMessage.textContent =  message
+        //     messageList.appendChild(newMessage)
+        // }
+
+        chatSocket.onclose = function(e){
+            console.log('websocket closed')
+        }
+
+
+        function sendMessage() {
+            // console.log('messasge esnd')
+            const messageInput = document.getElementById('message-input');
+            const message = messageInput.value;
+
+            // Send the message to the WebSocket
+            chatSocket.send(JSON.stringify({
+                'message': message
+            }));
+
+            // Clear the input field after sending
+            messageInput.value = '';
+        }
+        // window.onload = function() {
+        //     socket = new WebSocket('ws://127.0.0.1:8000/ws/chat/')
+
+        //     socket.onopen = function(e) {
+        //         console.log('socket connected')
+        //     }
+
+        //     socket.onmessage = function(e){
+        //         const data = JSON.parse(e.data)
+        //         console.log(data.message)
+        //         document.getElementById('message').innerHTML += `<p>${data.message}</p>`; 
+        //     }
+        //     socket.onclose = function(e){
+        //         console.log('websocket disconnected')
+        //     }
+        // }
+
+        // function sendMessage(){
+        //     const message = document.getElementById("messageInput").value; 
+        //     socket.send(JSON.stringify({ "message": message })); 
+        // }
+    </script>
+
+</html>
