@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher's Meeting Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background-color: #121212;
+            color: #ffffff;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            gap: 20px;
+            padding: 20px;
+            height: 100vh;
+        }
+
+        .section {
+            background-color: #1e1e1e;
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid rgb(208, 232, 25, 0.2);
+            overflow-y: auto;
+        }
+
+        .section h2 {
+            color: rgb(208, 232, 25);
+            margin-bottom: 20px;
+            border-bottom: 2px solid rgb(208, 232, 25);
+            padding-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .student-list {
+            list-style: none;
+        }
+
+        .student-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #2a2a2a;
+            border-radius: 5px;
+        }
+
+        .student-status {
+            width: 10px;
+            height: 10px;
+            background-color: rgb(208, 232, 25);
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .question-card {
+            background-color: #2a2a2a;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            border-left: 3px solid rgb(208, 232, 25);
+            position: relative;
+        }
+
+        .question-meta {
+            font-size: 0.8em;
+            color: #888;
+            margin-top: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .relevance-score {
+            color: rgb(208, 232, 25);
+            font-weight: bold;
+        }
+
+        .btn {
+            background-color: rgb(208, 232, 25);
+            color: #121212;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 2px;
+        }
+
+        .btn:hover {
+            background-color: rgb(188, 212, 5);
+        }
+
+        .btn-secondary {
+            background-color: #2a2a2a;
+            color: rgb(208, 232, 25);
+            border: 1px solid rgb(208, 232, 25);
+        }
+
+        .btn-secondary:hover {
+            background-color: #3a3a3a;
+        }
+
+        .question-actions {
+            margin-top: 10px;
+            display: flex;
+            gap: 5px;
+        }
+
+        .answered {
+            border-left-color: #4CAF50;
+        }
+
+        .ai-response {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #1a1a1a;
+            border-radius: 3px;
+            border-left: 2px solid rgb(208, 232, 25);
+            display: none;
+        }
+
+        .student-count {
+            font-size: 0.8em;
+            color: rgb(208, 232, 25);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Left Section - Students -->
+
+
+        <!-- Middle Section - Current Questions -->
+        <div class="section">
+            <h2>Current Questions</h2>
+            <div id="currentQuestions">
+                <!-- Questions will be dynamically added here -->
+            </div>
+        </div>
+
+        <!-- Right Section - Relevant Questions -->
+        <div class="section">
+            <h2>Related Questions</h2>
+            <div id="relatedQuestions">
+                <!-- Related questions will be dynamically added here -->
+            </div>
+        </div>
+        {% for i in most_relevant %}
+                {{i.0}}
+        {% endfor %}
+    </div>
+
+    <script>
+        const questions = [
+        {% for i in most_relevant %}
+            {
+                text: "{{ i.0 }}",
+                author: "{{ i.2 }}",
+                id : {{i.}}  // Example dynamic field
+ // Example dynamic field
+
+            },
+            {% endfor %}
+    ];
+    console.log(questions)
+
+    const result =  createQuestionCard(questions);
+
+        const relatedQuestions = [
+            {
+                text: "What are the SOLID principles in OOP?",
+                relevance: 95
+            },
+            {
+                text: "How does inheritance work in Java?",
+                relevance: 88
+            },
+            {
+                text: "Can you explain method overloading?",
+                relevance: 82
+            }
+        ];
+
+        // Update student count
+        function updateStudentCount() {
+            const studentList = document.getElementById('studentList');
+            const count = studentList.children.length;
+            document.getElementById('studentCount').textContent = `${count} Online`;
+        }
+
+        function createQuestionCard(questions) {
+            const cards = [];  // Initialize an empty array to store the created cards
+            
+            questions.forEach(question => {
+                console.log(question);
+                const card = document.createElement('div');
+                card.className = `question-card ${question.answered ? 'answered' : ''}`;
+                card.innerHTML = `
+                    <p>${question.text}</p>
+                    <div class="question-meta">
+                        <span>Asked by ${question.author} • ${question.time}</span>
+                        <span class="relevance-score">${question.relevance}% Relevant</span>
+                    </div>
+                    <div class="question-actions">
+                        <button class="btn ${question.answered ? 'btn-secondary' : ''}" 
+                                onclick="toggleAnswered(${question.id})">
+                            ${question.answered ? 'Mark as Pending' : 'Mark as Answered'}
+                        </button>
+                        <button class="btn btn-secondary" onclick="generateAIResponse(${question.id})">
+                            Generate AI Answer
+                        </button>
+                    </div>
+                    <div class="ai-response" id="ai-response-${question.id}"></div>
+                `;
+                cards.push(card);  // Push the created card to the array
+            });
+            
+            return cards;  // Return the array of cards after the loop
+        }
+        
+
+        // Toggle answered status
+        function toggleAnswered(questionId) {
+            const question = questions.find(q => q.id === questionId);
+            if (question) {
+                question.answered = !question.answered;
+                renderQuestions();
+            }
+        }
+
+        // Generate AI response
+        function generateAIResponse(questionId) {
+            const question = questions.find(q => q.id === questionId);
+            if (question) {
+                // Simulate AI response generation
+                const aiResponses = {
+                    1: "Polymorphism in OOP allows objects of different classes to be treated as objects of a common base class. It enables a single interface to represent different underlying forms (data types or classes). There are two types: compile-time (method overloading) and runtime (method overriding).",
+                    2: "REST APIs follow a resource-based architecture with standard HTTP methods, while GraphQL provides a single endpoint where clients can request specific data. GraphQL offers more flexibility in data fetching and reduces over-fetching/under-fetching of data.",
+                    3: "The Virtual DOM is a lightweight copy of the actual DOM. React uses it to improve performance by minimizing direct manipulation of the DOM. When state changes occur, React first updates the Virtual DOM, compares it with the previous version (diffing), and then efficiently updates only the necessary parts of the actual DOM."
+                };
+
+                const responseElement = document.getElementById(`ai-response-${questionId}`);
+                responseElement.style.display = 'block';
+                responseElement.textContent = aiResponses[questionId] || "AI response not available for this question.";
+            }
+        }
+
+        // Render questions
+        function renderQuestions() {
+            const currentQuestionsContainer = document.getElementById('currentQuestions');
+            currentQuestionsContainer.innerHTML = '';
+            questions.forEach(question => {
+                currentQuestionsContainer.appendChild(createQuestionCard(question));
+            });
+
+            const relatedQuestionsContainer = document.getElementById('relatedQuestions');
+            relatedQuestionsContainer.innerHTML = '';
+            relatedQuestions.forEach(question => {
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                card.innerHTML = `
+                    <p>${question.text}</p>
+                    <div class="question-meta">
+                        <span class="relevance-score">${question.relevance}% Relevant</span>
+                    </div>
+                `;
+                relatedQuestionsContainer.appendChild(card);
+            });
+        }
+
+        // Initialize the dashboard
+        updateStudentCount();
+        renderQuestions();
+    </script>
+</body>
+</html>

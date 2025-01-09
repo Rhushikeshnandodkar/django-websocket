@@ -48,7 +48,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         room = await sync_to_async(Room.objects.get)(name=self.room_name)
         messages = await sync_to_async(Message.objects.filter)(room=room)
         previous_messages = [{'content' : msg.content} async for msg in messages]
-        print(previous_messages)
+
         await self.send(text_data=json.dumps({
             'previous_messages' : previous_messages
         }))
@@ -66,7 +66,6 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
     async def receive(self, text_data):
         data = json.loads(text_data)
         message = data['message']
-        print(message)
         user = self.scope['user']
         tag = await sync_to_async(predict_spam)(message)
         room = await sync_to_async(Room.objects.get)(name=self.room_name)
@@ -85,7 +84,6 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
     async def chat_message(self, event):
         message = event['message']
         username = event['username']
-
         await self.send(text_data=json.dumps({
             'message' : message,
             'username' : username,

@@ -50,18 +50,16 @@
     /* max-width: 40%; */
   
 }
-.message-sent .content{
+.message-sent{
     background-color: #d1e7dd;
     padding: 10px;
     border-radius: 10px;
 }
-.message-received .content{
+.message-received{
     background-color: #f8d7da;
     padding: 10px;
     border-radius: 10px;
 }
-
-
 .message-received {
     text-align: left;
     margin: 1px 0;
@@ -109,77 +107,44 @@
         }
 
         chatSocket.onmessage = function(e) {
-    const data = JSON.parse(e.data);
-    const message = data.message;
-    const username = data.username;
+        const data = JSON.parse(e.data);
+        console.log(data.message)
+        const message = data.message;
+        if(data.message && data.username){
+            const username = data.username;
 
-    const messageList = document.getElementById('message-list');
-    const newMessage = document.createElement('li');
+const messageList = document.getElementById('message-list');
+const newMessage = document.createElement('li');
 
-    if (username === "{{ request.user.username }}") {
-        newMessage.className = 'message-sent';
-    } else {
-        newMessage.className = 'message-received';
-    }
+if (username === "{{ request.user.username }}") {
+    newMessage.className = 'message-sent';
+} else {
+    newMessage.className = 'message-received';
+}
 
-    newMessage.innerHTML = `
-        <h3 class="message-content">${message}</h3>
-        <p class="message-user">${username}</p>
-    `;
+newMessage.innerHTML = `
+<h3 class="message-content">${message}</h3>
+<p class="message-user">${username}</p>
+`;
 
-    messageList.appendChild(newMessage);
+messageList.appendChild(newMessage);
+        }
 };
-
-        // chatSocket.onmessage = function(e){
-        //     const data = JSON.parse(e.data)
-        //     console.log(e.data)
-        //     const message = data['message']
-
-        //     const messageList = document.getElementById('message-list')
-        //     const newMessage = document.createElement('li')
-        //     newMessage.textContent =  message
-        //     messageList.appendChild(newMessage)
-        // }
-
         chatSocket.onclose = function(e){
             console.log('websocket closed')
         }
-
-
         function sendMessage() {
             // console.log('messasge esnd')
             const messageInput = document.getElementById('message-input');
             const message = messageInput.value;
-
             // Send the message to the WebSocket
             chatSocket.send(JSON.stringify({
                 'message': message
             }));
-
             // Clear the input field after sending
             messageInput.value = '';
         }
-        // window.onload = function() {
-        //     socket = new WebSocket('ws://127.0.0.1:8000/ws/chat/')
 
-        //     socket.onopen = function(e) {
-        //         console.log('socket connected')
-        //     }
-
-        //     socket.onmessage = function(e){
-        //         const data = JSON.parse(e.data)
-        //         console.log(data.message)
-        //         document.getElementById('message').innerHTML += `<p>${data.message}</p>`; 
-        //     }
-        //     socket.onclose = function(e){
-        //         console.log('websocket disconnected')
-        //     }
-        // }
-
-        // function sendMessage(){
-        //     const message = document.getElementById("messageInput").value; 
-        //     socket.send(JSON.stringify({ "message": message })); 
-        // }
     </script>
 
 </html>
