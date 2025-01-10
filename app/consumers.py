@@ -5,6 +5,8 @@ from asgiref.sync import sync_to_async
 import django
 django.setup()
 from .models import *
+from channels.generic.websocket import AsyncWebsocketConsumer
+import json
 
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.sequence import pad_sequences
@@ -88,4 +90,74 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
             'message' : message,
             'username' : username,
             'tag': event['tag']
+        }))
+
+class PollConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        self.room_id = self.scope['url_route']['kwargs']['room_id']
+        self.room_group_name = f"room_{self.room_id}"
+
+        # Join the room group
+        await self.channel_layer.group_add(
+            self.room_group_name,
+            self.channel_name
+        )
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        # Leave the room group
+        await self.channel_layer.group_discard(
+            self.room_group_name,
+            self.channel_name
+        )
+
+    async def send_poll(self, event):
+        # Get poll data from the event
+        poll = event['poll']
+
+        # Send poll data to WebSocket clients
+        await self.send(text_data=json.dumps({
+            "poll": poll
+        }))
+
+    async def receive(self, text_data):
+        import json
+        data = json.loads(text_data)
+
+        if data['type'] == 'submit_poll_response':
+            poll_id = data['poll_id']
+            selected_option = data['selected_option']
+            user_id = self.scope['user'].id
+
+            # Use sync_to_asyncto interact with the database
+            poll = await sync_to_async(Poll.objects.get)(id=poll_id)
+            user = await sync_to_async(User.objects.get)(id=user_id)
+
+            # Validate and save response
+            is_correct = poll.correct_answer == selected_option
+            await sync_to_async(PollResponse.objects.create)(
+                poll=poll,
+                student=user,
+                selected_option=selected_option,
+                is_correct=is_correct
+            )
+
+            # Broadcast response to group
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'poll_response',
+                    'user': user,
+                    'selected_option': selected_option,
+                    'is_correct': is_correct
+                }
+            )
+
+    async def poll_response(self, event):
+        # Send the poll response to WebSocket clients
+        await self.send(text_data=json.dumps({
+            'type': 'poll_response',
+            'user': event['user'].id,
+            'selected_option': event['selected_option'],
+            'is_correct': event['is_correct']
         }))

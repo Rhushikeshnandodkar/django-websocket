@@ -64,3 +64,53 @@ def dashboard(request, room_id):
     rel_results = calculate_relevancy(room.text, not_spam_questions, messages)
     # print(rel_results)
     return render(request, "questdash.html", {'most_relevant' : rel_results[1:15], "other_relevant" : rel_results[15: ]})
+
+from django.shortcuts import render, get_object_or_404, redirect
+from django.http import HttpResponseForbidden
+from django.contrib.auth.decorators import login_required
+from .models import Poll, Room
+import json
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
+
+@login_required
+def create_poll(request, room_id):
+    room = get_object_or_404(Room, id=room_id)
+
+    if room.creator != request.user:
+        return HttpResponseForbidden("You are not the owner of this room and cannot create a poll.")
+
+    if request.method == 'POST':
+        question = request.POST['question']
+        options = json.loads(request.POST['options'])  # {"Option 1": False, "Option 2": True}
+        correct_answer = request.POST['correct_answer']
+
+        # Create and save the poll
+        poll = Poll.objects.create(
+            room=room,
+            question=question,
+            options=options,
+            correct_answer=correct_answer
+        )
+
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            f"room_{room_id}",
+            {
+                "type": "send_poll",
+                "poll": {
+                    "id": poll.id,
+                    "question": poll.question,
+                    "options": poll.options,
+                    "created_at": str(poll.created_at)
+                }
+            }
+        )
+
+        # Broadcast poll to all room participants via WebSocket
+        # Assuming you have a WebSocket consumer set up
+        # Use Channels to send the poll to all connected users in the room
+
+        return redirect('room_detail', room_id=room.id)
+    
+    return render(request, 'create_poll.html', {'room': room})

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+
+  <h2>Create Poll for Room: {{ room.name }}</h2>
+  
+  <form method="POST">
+    {% csrf_token %}
+    <div>
+      <label for="question">Question:</label>
+      <input type="text" name="question" required>
+    </div>
+    
+    <div>
+      <label for="options">Options (in JSON format):</label>
+      <textarea name="options" required>{"Option 1": false, "Option 2": true}</textarea>
+    </div>
+    
+    <div>
+      <label for="correct_answer">Correct Answer:</label>
+      <input type="text" name="correct_answer" required>
+    </div>
+    
+    <button type="submit">Create Poll</button>
+  </form>
+
+</body>
+</html>

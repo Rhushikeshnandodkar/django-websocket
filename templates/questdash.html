@@ -164,41 +164,8 @@
 
     <script>
         const questions = [
-        {% for i in most_relevant %}
-            {
-                text: "{{ i.0 }}",
-                author: "{{ i.2 }}",
-                id : {{i.}}  // Example dynamic field
- // Example dynamic field
-
-            },
-            {% endfor %}
     ];
-    console.log(questions)
-
-    const result =  createQuestionCard(questions);
-
-        const relatedQuestions = [
-            {
-                text: "What are the SOLID principles in OOP?",
-                relevance: 95
-            },
-            {
-                text: "How does inheritance work in Java?",
-                relevance: 88
-            },
-            {
-                text: "Can you explain method overloading?",
-                relevance: 82
-            }
-        ];
-
-        // Update student count
-        function updateStudentCount() {
-            const studentList = document.getElementById('studentList');
-            const count = studentList.children.length;
-            document.getElementById('studentCount').textContent = `${count} Online`;
-        }
+    console.log(questions);
 
         function createQuestionCard(questions) {
             const cards = [];  // Initialize an empty array to store the created cards
@@ -210,19 +177,8 @@
                 card.innerHTML = `
                     <p>${question.text}</p>
                     <div class="question-meta">
-                        <span>Asked by ${question.author} • ${question.time}</span>
-                        <span class="relevance-score">${question.relevance}% Relevant</span>
+                        <span>Asked by ${question.author}</span>
                     </div>
-                    <div class="question-actions">
-                        <button class="btn ${question.answered ? 'btn-secondary' : ''}" 
-                                onclick="toggleAnswered(${question.id})">
-                            ${question.answered ? 'Mark as Pending' : 'Mark as Answered'}
-                        </button>
-                        <button class="btn btn-secondary" onclick="generateAIResponse(${question.id})">
-                            Generate AI Answer
-                        </button>
-                    </div>
-                    <div class="ai-response" id="ai-response-${question.id}"></div>
                 `;
                 cards.push(card);  // Push the created card to the array
             });
@@ -272,16 +228,35 @@
                 card.className = 'question-card';
                 card.innerHTML = `
                     <p>${question.text}</p>
-                    <div class="question-meta">
-                        <span class="relevance-score">${question.relevance}% Relevant</span>
-                    </div>
                 `;
                 relatedQuestionsContainer.appendChild(card);
             });
         }
 
+
+        const questions = [
+            {
+                "text": "I am fine, what about you?",
+                "author": "rhushi"
+            },
+            {
+                "text": "Hi, this is Rhushikesh here.",
+                "author": "rhushi"
+            },
+            {
+                "text": "Hello, I am Amay Korade.",
+                "author": "new_user"
+            },
+            {
+                "text": "How are you, Rhushikesh?",
+                "author": "new_user"
+            },
+            {
+                "text": "Oh, Rhushi from SCOE!",
+                "author": "new_user"
+            }
+        ];
         // Initialize the dashboard
-        updateStudentCount();
         renderQuestions();
     </script>
 </body>

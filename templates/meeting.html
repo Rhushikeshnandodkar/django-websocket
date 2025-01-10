@@ -285,6 +285,35 @@ body {
 ::-webkit-scrollbar-thumb:hover {
     background: #555;
 }
+.pol-cont{
+    position: absolute;
+    top: 55%;
+    left: 30%;
+    width: 40%;
+    /* margin-right: auto; */
+    background-color: #111111;
+    color: white;
+    border: 1px solid rgba(208, 232, 25, 0.353);
+    padding: 2%;
+    border-radius: 10px;
+}
+.pol-cont ul{
+    display: grid;
+    grid-template-columns: auto auto auto auto;
+    list-style: none;
+    padding: 3% 0;
+}
+.pol-cont ul li{
+    color: white;
+    background-color: #2a2a2a;
+    padding: 10% 2%;
+    margin-right: 5%;
+    text-align: center;
+    border-radius: 6px;
+    border: 1px solid black;
+
+}
+
 </style>
 <body>
     <!DOCTYPE html>
@@ -338,6 +367,17 @@ body {
                     </button>
                 </div>
             </main>
+        </div>
+
+        <div id="poll-container">
+            <!-- <p><strong>What is polymorphism in Java?</strong></p>
+        <ul>
+            <li>Option A</li>
+            <li>Option B</li>
+            <li>Option C</li>
+            <li>Option D</li>
+
+        </ul> -->
         </div>
     </body>
     </html>
@@ -397,5 +437,91 @@ messageList.appendChild(newMessage);
             messageInput.value = '';
         }
 
+        // WebSocket connection
+const pollSocket = new WebSocket(
+    'ws://' + window.location.host + '/ws/poll/' + {{room.id}} + '/'
+  );
+  
+  // Listen for incoming messages
+  pollSocket.onmessage = function (e) {
+  const data = JSON.parse(e.data);
+//   console.log(data)
+  if(data.type == 'poll_response' && data.user == {{request.user.id}}){
+    console.log(data.user)
+    if(data.is_correct == true){
+        alert("yeah you have chosen right answer")
+    }else{
+        alert("Oops you gave wrong answer")
+    }
+  }
+
+  if (data.poll) {
+    const poll = data.poll;
+
+    // Create poll element
+    const pollElement = document.createElement('div');
+    pollElement.className = 'pol-cont';
+    pollElement.innerHTML = `
+      <p><strong>${poll.question}</strong></p>
+      <ul id="poll-options">
+        ${Object.keys(poll.options)
+          .map(
+            (option) => `
+          <li>
+            <label>
+              <input type="radio" name="poll-option" value="${option}"> 
+              ${option}: ${poll.options[option]}
+            </label>
+          </li>
+        `
+          )
+          .join('')}
+      </ul>
+      <button id="submit-poll-response">Submit Response</button>
+    `;
+
+    document.getElementById('poll-container').appendChild(pollElement);
+
+    // Add event listener for response submission
+    document
+      .getElementById('submit-poll-response')
+      .addEventListener('click', function () {
+        const selectedOption = document.querySelector(
+          'input[name="poll-option"]:checked'
+        )?.value;
+
+        if (!selectedOption) {
+          alert('Please select an option!');
+          return;
+        }
+
+        // Send the selected option to the server
+        pollSocket.send(
+          JSON.stringify({
+            type: 'submit_poll_response',
+            poll_id: poll.id,
+            selected_option: selectedOption,
+            user_id: {{request.user.id}}, // Replace with the current user's ID
+          })
+        );
+        document.getElementById('poll-container').removeChild(pollElement);
+      });
+
+    // Remove poll after 1 minute
+    setTimeout(() => {
+      document.getElementById('poll-container').removeChild(pollElement);
+    }, 60000);
+  } 
+  else if (data.response) {
+    // Handle response validation feedback
+    const response = data.response;
+    console.log(response)
+    alert(
+      `${response.user} selected option ${response.selected_option}. ${
+        response.is_correct ? 'Correct!' : 'Wrong!'
+      }`
+    );
+  }
+};
 </script>
 </html>
