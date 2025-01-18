@@ -114,3 +114,49 @@ def create_poll(request, room_id):
         return redirect('room_detail', room_id=room.id)
     
     return render(request, 'create_poll.html', {'room': room})
+
+
+
+from django.http import JsonResponse
+from .zoom_utils import ZoomAPI
+from .models import Meeting
+
+def create_meeting(request):
+    """Create a new Zoom meeting."""
+    if request.method == "POST":
+        zoom = ZoomAPI()
+        host_email = request.POST["host_email"]
+        topic = request.POST["topic"]
+        start_time = request.POST["start_time"]
+        duration = int(request.POST["duration"])
+
+        # Create meeting
+        meeting_data = zoom.create_meeting(
+            host_email=host_email,
+            topic=topic,
+            start_time=start_time,
+            duration=duration,
+        )
+
+        # Save meeting data to the database
+        Meeting.objects.create(
+            topic=topic,
+            host_email=host_email,
+            start_time=start_time,
+            duration=duration,
+            meeting_id=meeting_data["id"],
+            join_url=meeting_data["join_url"],
+            start_url=meeting_data["start_url"],
+        )
+        return JsonResponse({"message": "Meeting created", "data": meeting_data})
+    return render(request, "create_meeting.html")
+
+
+def join_meeting(request, meeting_id):
+    """Join an existing Zoom meeting."""
+    meeting = Meeting.objects.get(meeting_id=meeting_id)
+    return render(
+        request,
+        "join_meeting.html",
+        {"meeting": meeting, "comments": meeting.comments.all()},
+    )

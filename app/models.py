@@ -43,3 +43,16 @@ class PollResponse(models.Model):
 
     def __str__(self):
         return f"{self.student.username} - {self.poll.question} - {self.selected_option} - {'Correct' if self.is_correct else 'Wrong'}"
+
+
+class Meeting(models.Model):
+    topic = models.CharField(max_length=255)
+    host_email = models.EmailField()
+    start_time = models.DateTimeField()
+    duration = models.IntegerField()
+    meeting_id = models.CharField(max_length=255)
+    join_url = models.URLField()
+    start_url = models.URLField()
+
+    def __str__(self):
+        return self.topic

@@ -1,0 +1,12 @@
+<form method="POST">
+    {% csrf_token %}
+    <label>Host Email:</label>
+    <input type="email" name="host_email" required>
+    <label>Topic:</label>
+    <input type="text" name="topic" required>
+    <label>Start Time:</label>
+    <input type="datetime-local" name="start_time" required>
+    <label>Duration (minutes):</label>
+    <input type="number" name="duration" required>
+    <button type="submit">Create Meeting</button>
+</form>

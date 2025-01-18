@@ -82,6 +82,10 @@ CHANNEL_LAYERS = {
         'BACKEND': 'channels.layers.InMemoryChannelLayer',
     },
 }
+# settings.py
+ZOOM_API_KEY = "ld45Dbi-T-Cu9PiveodG_g"
+ZOOM_API_SECRET = "0jKXbHS9QeWMLNQrLqIafg"
+ZOOM_API_BASE_URL = "https://api.zoom.us/v2"
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
